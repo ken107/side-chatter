@@ -13,9 +13,11 @@ body {
 }
 
 .header {
+    color: white;
+}
+.header .logo {
     font-family: cursive;
     font-style: italic;
-    color: white;
 }
 
 .chat-log {

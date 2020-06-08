@@ -8,6 +8,8 @@ if (location.search)
 
 var myUrl = new URL(queryString.url);
 
+document.addEventListener("DOMContentLoaded", onDocumentReady);
+
 
 
 
@@ -40,11 +42,32 @@ function request(capabilities, data) {
 
 /* HANDLERS */
 
+function onDocumentReady() {
+    var composeForm = document.getElementById("compose-form");
+    composeForm.addEventListener("submit", function(ev) {
+        submitForm();
+        ev.preventDefault();
+        ev.stopPropagation();
+    })
+    composeForm.message.addEventListener("keypress", function(ev) {
+        if (ev.which == 13 && !ev.shiftKey) {
+            submitForm();
+            ev.preventDefault();
+            ev.stopPropagation();
+        }
+    })
+    function submitForm() {
+        sendChat(composeForm.message.value);
+        composeForm.message.value = "";
+    }
+}
+
 function onJoined(data) {
     var chatLog = document.getElementById("chat-log");
     chatLog.innerHTML = "";
     data.chatLog.forEach(appendChatEntry);
 }
+
 function onChatMessage(data) {
     appendChatEntry(data.message);
 }
