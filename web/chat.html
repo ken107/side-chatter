@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Side Chatter</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+        <link rel="stylesheet" href="css/chat.css">
+
+        <script src="js/service-broker.js"></script>
+        <script src="js/chat.js"></script>
+    </head>
+    <body>
+        <div class="content">
+            <div class="header">
+                Side Chatter
+            </div>
+            <div class="chat-log" id="chat-log">
+            </div>
+            <div class="control-panel">
+                <form class="compose-form"
+                    bind-event-submit="this.sendChat(thisElem.message.value); return false">
+                    <textarea name="message" placeholder="Enter your chat message here"></textarea>
+                    <button type="submit" class="btn btn-secondary">Send</button>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>

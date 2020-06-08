@@ -1,0 +1,11 @@
+{
+  "extension_name": {
+    "message": "Side Chatter: A chat extension"
+  },
+  "extension_short_name": {
+    "message": "Side Chatter"
+  },
+  "extension_description": {
+    "message": "The web needs not be a lonely place, install Side Chatter and chat away!"
+  }
+}

@@ -1,0 +1,58 @@
+
+body {
+    background-color: initial;
+}
+.content {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-flow: column;
+}
+
+.header {
+    font-family: cursive;
+    font-style: italic;
+    color: white;
+}
+
+.chat-log {
+    flex: 1 1 0;
+    margin-top: .25rem;
+    padding: 1rem;
+    border-radius: .375rem;
+    background-color: white;
+    overflow: auto;
+}
+.chat-log .chat-entry {
+    margin-bottom: 1rem;
+}
+.chat-log .user-name {
+    font-weight: bold;
+}
+.chat-log .user-name::after {
+    content: " ";
+}
+.chat-log .room-path {
+    font-size: smaller;
+    color: #bbb;
+    cursor: pointer;
+}
+.chat-log .room-path:hover {
+    text-decoration: underline;
+}
+
+.control-panel {
+    flex: 0 0 auto;
+    margin-top: 1rem;
+    display: flex;
+    flex-flow: column;
+}
+.control-panel .compose-form {
+    display: flex;
+}
+.control-panel .compose-form textarea {
+    flex: 1;
+}
