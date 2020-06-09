@@ -9,6 +9,19 @@ if (location.search)
 
 var myUrl = new URL(queryString.url);
 
+var smileyCollections = [
+    {name: "orange", count: 94, desc: "Orange"},
+    {name: "animals", count: 64, desc: "Animals"},
+    {name: "cute", count: 29, desc: "Cute"},
+    {name: "trundle", count: 36, desc: "Ugly"},
+    {name: "shiny", count: 142, desc: "Shiny"},
+    {name: "mad", count: 93, desc: "Mad"},
+    {name: "avatar", count: 876, desc: "Small"},
+    {name: "anime", count: 971, desc: "Korean"},
+]
+var smileysPerPage = 20;
+var smileyRoot = "https://support2.lsdsoftware.com/diepkhuc-content/smileys/";
+
 document.addEventListener("DOMContentLoaded", onDocumentReady);
 
 
@@ -105,6 +118,7 @@ function onDocumentReady() {
     var smileyButton = document.getElementById("smiley-button");
     smileyButton.addEventListener("click", function() {
         smileyBrowser.style.display = "block";
+        if (!smileyList.firstChild) showSmileyGroup(0, 0);
     })
 
     var editNameForm = document.getElementById("edit-name-form");
@@ -120,6 +134,50 @@ function onDocumentReady() {
     myName.addEventListener("click", function() {
         editNameForm.style.display = "block";
         myName.style.display = "none";
+    })
+
+    var fontSize = 1;
+    var chatLog = document.getElementById("chat-log");
+    getSettings(["fontSize"])
+        .then(function(settings) {
+            if (settings.fontSize) {
+                fontSize = settings.fontSize;
+                chatLog.style.fontSize = fontSize + "em";
+            }
+        })
+
+    var fontSizeButton = document.getElementById("fontsize-button");
+    fontSizeButton.addEventListener("click", function() {
+        fontSize += .125;
+        if (fontSize > 1.26) fontSize = .75;
+        chatLog.style.fontSize = fontSize + "em";
+        updateSettings({fontSize: fontSize});
+    })
+
+    var smileyGroupSelect = document.getElementById("smiley-group");
+    smileyCollections.forEach(function(collection, collectionIndex) {
+        var optGroup = document.createElement("OPTGROUP");
+        optGroup.setAttribute("label", collection.desc);
+        smileyGroupSelect.appendChild(optGroup);
+        var numPages = Math.ceil(collection.count / smileysPerPage);
+        for (var pageIndex=0; pageIndex<numPages; pageIndex++) {
+            var opt = document.createElement("OPTION");
+            opt.value = collectionIndex + "-" + pageIndex;
+            opt.innerText = "Page " + (pageIndex+1);
+            optGroup.appendChild(opt);
+        }
+    })
+    smileyGroupSelect.addEventListener("change", function() {
+        var tokens = smileyGroupSelect.value.split("-");
+        showSmileyGroup(Number(tokens[0]), Number(tokens[1]));
+    })
+
+    var smileyList = document.getElementById("smiley-list");
+    smileyList.addEventListener("click", function(ev) {
+        if (ev.target.tagName == "IMG") {
+            var smileyId = ev.target.getAttribute("data-smiley-id");
+            composeForm.message.value += "[s:" + smileyId + "]";
+        }
     })
 }
 
@@ -157,11 +215,37 @@ function appendChatEntry(entry) {
         var roomPath = document.createElement("SPAN");
         roomPath.className = "room-path";
         roomPath.innerText = url.pathname;
+        roomPath.setAttribute("title", entry.user.url);
         chatterInfo.appendChild(roomPath);
     }
 
     var chatMessage = document.createElement("DIV");
     chatMessage.className = "chat-message";
-    chatMessage.innerText = entry.message;
+    entry.message.split(/\[s:(.*?)\]/)
+        .forEach(function(token, index) {
+            if (index %2 == 1) {
+                var img = document.createElement("IMG");
+                img.src = smileyRoot + token;
+                chatMessage.appendChild(img);
+            }
+            else if (token) {
+                var span = document.createElement("SPAN");
+                span.innerText = token;
+                chatMessage.appendChild(span);
+            }
+        })
     chatEntry.appendChild(chatMessage);
+}
+
+function showSmileyGroup(collectionIndex, pageIndex) {
+    var smileyList = document.getElementById("smiley-list");
+    smileyList.innerHTML = "";
+    var collection = smileyCollections[collectionIndex];
+    for (var i=pageIndex*smileysPerPage; i<Math.min((pageIndex+1)*smileysPerPage, collection.count); i++) {
+        var smileyId = collection.name + "/" + (i+1) + ".gif";
+        var img = document.createElement("IMG");
+        img.src = smileyRoot + smileyId;
+        img.setAttribute("data-smiley-id", smileyId);
+        smileyList.appendChild(img);
+    }
 }

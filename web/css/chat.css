@@ -23,13 +23,17 @@ body {
 .chat-log {
     flex: 1 1 0;
     margin-top: .25rem;
-    padding: 1rem;
+    padding: 1em;
     border-radius: .375rem;
     background-color: white;
     overflow: auto;
 }
 .chat-log .chat-entry {
-    margin-bottom: 1rem;
+    margin-bottom: 1em;
+}
+.chat-log .chatter-info {
+    white-space: nowrap;
+    overflow: hidden;
 }
 .chat-log .user-name {
     font-weight: bold;
@@ -57,6 +61,9 @@ body {
 .smiley-browser .close-button {
     float: right;
     cursor: pointer;
+}
+.smiley-browser .smiley-list img {
+    cursor: copy;
 }
 
 .control-panel {
