@@ -14,7 +14,8 @@
     "128": "img/icon.png"
   },
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "storage"
   ],
   "optional_permissions": [
     "http://*/",
@@ -26,7 +27,6 @@
   ],
   "background": {
     "scripts": [
-      "js/common.js",
       "js/background.js"
     ],
     "persistent": false

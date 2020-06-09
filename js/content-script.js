@@ -1,5 +1,28 @@
+var brapi = (typeof chrome != 'undefined') ? chrome : (typeof browser != 'undefined' ? browser : {});
 
-(function() {
+getSettings(["sidebarWidth"]).then(onInit);
+
+
+
+/* UTILS */
+
+function getSettings(names) {
+    return new Promise(function(fulfill) {
+        brapi.storage.local.get(names, fulfill);
+    })
+}
+
+function updateSettings(items) {
+    return new Promise(function(fulfill) {
+        brapi.storage.local.set(items, fulfill);
+    })
+}
+
+
+
+/* HANDLERS */
+
+function onInit(settings) {
     if (document.getElementById("side-chatter")) return;
 
     var main = document.createElement("DIV");
@@ -8,9 +31,9 @@
     main.style.top =
     main.style.right =
     main.style.bottom = "0px";
-    main.style.width = "25%";
-    main.style.borderRadius = "6px";
-    main.style.padding = "12px 12px 12px 0";
+    main.style.width = settings.sidebarWidth ? (settings.sidebarWidth + "px") : "25%";
+    main.style.borderRadius = ".375rem";
+    main.style.padding = ".75rem .75rem .75rem 0";
     main.style.boxSizing = "border-box";
     main.style.backgroundColor = "#800";
     main.style.zIndex = "9999";
@@ -18,7 +41,7 @@
     document.body.appendChild(main);
 
     var resizer = new function() {
-		var startWidth, startX;
+		var startWidth, startX, currentWidth;
 		this.start = function(ev) {
             frame.style.pointerEvents = "none";
 			startWidth = main.offsetWidth;
@@ -29,12 +52,13 @@
             ev.stopPropagation();
 		};
 		function move(ev) {
-			var currentWidth = startWidth - (ev.clientX - startX);
+			currentWidth = startWidth - (ev.clientX - startX);
 			main.style.width = currentWidth + "px";
 			ev.preventDefault();
             ev.stopPropagation();
 		}
 		function stop(ev) {
+            updateSettings({sidebarWidth: currentWidth});
             document.removeEventListener("mousemove", move);
             document.removeEventListener("mouseup", stop);
             frame.style.pointerEvents = "";
@@ -53,7 +77,7 @@
     var resizerKnob = document.createElement("IMG");
     resizerKnob.src = chrome.runtime.getURL("web/img/drag-horiz.png");
     resizerKnob.addEventListener("mousedown", resizer.start.bind(resizer));
-    resizerKnob.style.width = "12px";
+    resizerKnob.style.width = ".75rem";
     resizerKnob.style.cursor = "ew-resize";
     resizerDiv.appendChild(resizerKnob);
 
@@ -68,7 +92,9 @@
     closeBtn.addEventListener("click", function() {document.body.removeChild(main)});
     closeBtn.style.position = "absolute";
     closeBtn.style.top =
-    closeBtn.style.right = "12px";
+    closeBtn.style.right = ".75rem";
+    closeBtn.style.fontSize = "1rem";
+    closeBtn.style.color = "white";
     closeBtn.style.cursor = "pointer";
     main.appendChild(closeBtn);
-})()
+}

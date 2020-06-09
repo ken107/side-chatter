@@ -46,15 +46,46 @@ body {
     text-decoration: underline;
 }
 
+.smiley-browser {
+    flex: 0 0 auto;
+    margin-top: .5rem;
+    padding: 1rem;
+    border-radius: .375rem;
+    background-color: white;
+    display: none;
+}
+.smiley-browser .close-button {
+    float: right;
+    cursor: pointer;
+}
+
 .control-panel {
     flex: 0 0 auto;
-    margin-top: 1rem;
-    display: flex;
-    flex-flow: column;
-}
-.control-panel .compose-form {
+    margin-top: .5rem;
     display: flex;
 }
-.control-panel .compose-form textarea {
+.control-panel .my-name {
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+}
+.control-panel .edit-name-form {
+    display: none;
+}
+.control-panel .buttons {
+    margin-left: auto;
+    color: white;
+    display: flex;
+}
+.control-panel .buttons > .material-icons {
+    cursor: pointer;
+}
+
+.compose-form {
+    flex: 0 0 auto;
+    margin-top: .5rem;
+    display: flex;
+}
+.compose-form textarea {
     flex: 1;
 }

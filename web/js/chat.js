@@ -1,3 +1,4 @@
+var brapi = (typeof chrome != 'undefined') ? chrome : (typeof browser != 'undefined' ? browser : {});
 
 var queryString = {};
 if (location.search)
@@ -10,6 +11,21 @@ var myUrl = new URL(queryString.url);
 
 document.addEventListener("DOMContentLoaded", onDocumentReady);
 
+
+
+/* UTILS */
+
+function getSettings(names) {
+    return new Promise(function(fulfill) {
+        brapi.storage.local.get(names, fulfill);
+    })
+}
+
+function updateSettings(items) {
+    return new Promise(function(fulfill) {
+        brapi.storage.local.set(items, fulfill);
+    })
+}
 
 
 
@@ -27,7 +43,10 @@ sb.setHandler("side-chatter-client", function(req) {
     }
 })
 sb.addConnectListener(function() {
-    request(["join-1.0"], {method: "join", url: queryString.url})
+    getSettings(["myName"])
+        .then(function(settings) {
+            return request(["join-1.0"], {method: "join", url: queryString.url, myName: settings.myName})
+        })
         .then(onJoined)
         .catch(console.error)
 })
@@ -40,29 +59,73 @@ function request(capabilities, data) {
 
 
 
+
+/* ACTIONS */
+
+function sendChat(message) {
+    request(["message-1.0"], {method: "message", message: message})
+        .catch(console.error)
+}
+
+function changeName(newName) {
+    request(["changeName-1.0"], {method: "changeName", newName: newName})
+        .then(function() {
+            document.getElementById("my-name").innerText = newName;
+            return updateSettings({myName: newName});
+        })
+        .catch(console.error)
+}
+
+
+
 /* HANDLERS */
 
 function onDocumentReady() {
     var composeForm = document.getElementById("compose-form");
     composeForm.addEventListener("submit", function(ev) {
-        submitForm();
+        sendChat(composeForm.message.value);
+        composeForm.message.value = "";
         ev.preventDefault();
         ev.stopPropagation();
     })
     composeForm.message.addEventListener("keypress", function(ev) {
         if (ev.which == 13 && !ev.shiftKey) {
-            submitForm();
+            sendChat(composeForm.message.value);
+            composeForm.message.value = "";
             ev.preventDefault();
             ev.stopPropagation();
         }
     })
-    function submitForm() {
-        sendChat(composeForm.message.value);
-        composeForm.message.value = "";
-    }
+
+    var smileyBrowser = document.getElementById("smiley-browser");
+    smileyBrowser.getElementsByClassName("close-button")[0].addEventListener("click", function() {
+        smileyBrowser.style.display = "none";
+    })
+
+    var smileyButton = document.getElementById("smiley-button");
+    smileyButton.addEventListener("click", function() {
+        smileyBrowser.style.display = "block";
+    })
+
+    var editNameForm = document.getElementById("edit-name-form");
+    editNameForm.addEventListener("submit", function(ev) {
+        changeName(editNameForm.theName.value);
+        editNameForm.style.display = "none";
+        myName.style.display = "block";
+        ev.preventDefault();
+        ev.stopPropagation();
+    })
+
+    var myName = document.getElementById("my-name");
+    myName.addEventListener("click", function() {
+        editNameForm.style.display = "block";
+        myName.style.display = "none";
+    })
 }
 
 function onJoined(data) {
+    var myName = document.getElementById("my-name");
+    myName.innerText = data.myName;
     var chatLog = document.getElementById("chat-log");
     chatLog.innerHTML = "";
     data.chatLog.forEach(appendChatEntry);
@@ -101,14 +164,4 @@ function appendChatEntry(entry) {
     chatMessage.className = "chat-message";
     chatMessage.innerText = entry.message;
     chatEntry.appendChild(chatMessage);
-}
-
-
-
-
-/* ACTIONS */
-
-function sendChat(message) {
-    request(["message-1.0"], {method: "message", message: message})
-        .catch(console.error)
 }

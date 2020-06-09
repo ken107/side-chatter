@@ -3,6 +3,7 @@
     <head>
         <title>Side Chatter</title>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
         <link rel="stylesheet" href="css/chat.css">
 
         <script src="js/service-broker.js"></script>
@@ -15,12 +16,29 @@
             </div>
             <div class="chat-log" id="chat-log">
             </div>
-            <div class="control-panel">
-                <form class="compose-form" id="compose-form">
-                    <textarea name="message" placeholder="Enter your chat message here"></textarea>
-                    <button type="submit" class="btn btn-secondary">Send</button>
-                </form>
+            <div class="smiley-browser" id="smiley-browser">
+                <div class="close-button">&times;</div>
+                <select id="smiley-group"></select>
+                <div id="smiley-list"></div>
             </div>
+            <div class="control-panel">
+                <span class="my-name" id="my-name"></span>
+                <form class="edit-name-form" id="edit-name-form">
+                    <div class="input-group">
+                        <input type="text" name="theName" class="form-control">
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-sm btn-primary">Change</button>
+                        </div>
+                    </div>
+                </form>
+                <span class="buttons">
+                    <i class="material-icons" id="smiley-button">mood</i>
+                </span>
+            </div>
+            <form class="compose-form" id="compose-form">
+                <textarea name="message" placeholder="Enter your chat message here"></textarea>
+                <button type="submit" class="btn btn-secondary">Send</button>
+            </form>
         </div>
     </body>
 </html>
