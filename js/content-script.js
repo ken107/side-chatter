@@ -89,6 +89,7 @@ function onInit(settings) {
     frame.src = appUrl;
     frame.style.flex = "1";
     frame.style.borderStyle = "none";
+    frame.style.position = "static";
     main.appendChild(frame);
 }
 
