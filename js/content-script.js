@@ -90,19 +90,11 @@ function onInit(settings) {
     frame.style.flex = "1";
     frame.style.borderStyle = "none";
     main.appendChild(frame);
-
-    var closeBtn = document.createElement("DIV");
-    closeBtn.innerHTML = "&times;";
-    closeBtn.addEventListener("click", function() {document.body.removeChild(main)});
-    closeBtn.style.position = "absolute";
-    closeBtn.style.top =
-    closeBtn.style.right = ".75em";
-    closeBtn.style.color = "white";
-    closeBtn.style.cursor = "pointer";
-    main.appendChild(closeBtn);
 }
 
 function onMessage(ev) {
     if (appUrl.substr(0, ev.origin.length) != ev.origin) return;
-    if (ev.data.method == "redirectTo") location.href = ev.data.url;
+    if (ev.data.method == "redirectTo") brapi.runtime.sendMessage(ev.data);
+    else if (ev.data.method == "openOptionsPage") brapi.runtime.sendMessage(ev.data);
+    else if (ev.data.method == "closeChat") document.body.removeChild(document.getElementById("side-chatter"));
 }

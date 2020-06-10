@@ -54,8 +54,8 @@ function getCommonPathPrefix(path1, path2) {
     return path1.substring(0, start +1);
 }
 
-function redirectTo(url) {
-    window.parent.postMessage({method: "redirectTo", url: url}, queryString.url);
+function sendCommand(data) {
+    window.parent.postMessage(data, queryString.url);
 }
 
 
@@ -197,6 +197,16 @@ function onDocumentReady() {
             composeForm.message.value += "[s:" + smileyId + "]";
         }
     })
+
+    var optionsLink = document.getElementById("options-link");
+    optionsLink.addEventListener("click", function() {
+        sendCommand({method: "openOptionsPage"});
+    })
+
+    var closeButton = document.getElementById("close-button");
+    closeButton.addEventListener("click", function() {
+        sendCommand({method: "closeChat"});
+    })
 }
 
 function onJoined(data) {
@@ -241,7 +251,9 @@ function appendChatEntry(entry) {
         roomPath.className = "room-path";
         roomPath.innerText = relativePath;
         roomPath.setAttribute("title", entry.user.url);
-        roomPath.addEventListener("click", redirectTo.bind(null, entry.user.url));
+        roomPath.addEventListener("click", function() {
+            sendCommand({method: "redirectTo", url: entry.user.url});
+        })
         chatterInfo.appendChild(roomPath);
     }
 

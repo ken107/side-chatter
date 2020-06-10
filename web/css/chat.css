@@ -14,10 +14,22 @@ body {
 
 .header {
     color: white;
+    display: flex;
+    align-items: center;
 }
 .header .logo {
     font-family: cursive;
     font-style: italic;
+}
+.header .links {
+    margin-left: .5em;
+    font-size: smaller;
+}
+.header .buttons {
+    margin-left: auto;
+}
+.header .buttons > span {
+    cursor: pointer;
 }
 
 .chat-log {
