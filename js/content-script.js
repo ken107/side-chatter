@@ -96,5 +96,8 @@ function onMessage(ev) {
     if (appUrl.substr(0, ev.origin.length) != ev.origin) return;
     if (ev.data.method == "redirectTo") brapi.runtime.sendMessage(ev.data);
     else if (ev.data.method == "openOptionsPage") brapi.runtime.sendMessage(ev.data);
-    else if (ev.data.method == "closeChat") document.body.removeChild(document.getElementById("side-chatter"));
+    else if (ev.data.method == "closeChat") {
+        document.body.removeChild(document.getElementById("side-chatter"));
+        window.removeEventListener("message", onMessage, false);
+    }
 }

@@ -207,6 +207,18 @@ function onDocumentReady() {
     closeButton.addEventListener("click", function() {
         sendCommand({method: "closeChat"});
     })
+
+    var announcement = document.getElementById("announcement");
+    getSettings(["hideAnnouncement"])
+        .then(function(settings) {
+            if (!settings.hideAnnouncement) announcement.style.display = "flex";
+        })
+
+    var hideAnnouncementButton = document.getElementById("hide-announcement-button");
+    hideAnnouncementButton.addEventListener("click", function() {
+        announcement.style.display = "none";
+        updateSettings({hideAnnouncement: true});
+    })
 }
 
 function onJoined(data) {

@@ -32,6 +32,22 @@ body {
     cursor: pointer;
 }
 
+.announcement {
+    margin: .25rem 0 0 0;
+    display: none;
+    align-items: flex-start;
+}
+.announcement > :first-child {
+    font-size: larger;
+}
+.announcement > :nth-child(2) {
+    margin-left: 1em;
+}
+.announcement > :nth-child(3) {
+    margin-left: auto;
+    cursor: pointer;
+}
+
 .chat-log {
     flex: 1 1 0;
     margin-top: .25rem;
