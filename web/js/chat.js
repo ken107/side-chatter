@@ -1,4 +1,3 @@
-var brapi = (typeof chrome != 'undefined') ? chrome : (typeof browser != 'undefined' ? browser : {});
 
 var queryString = {};
 if (location.search)
@@ -29,15 +28,34 @@ document.addEventListener("DOMContentLoaded", onDocumentReady);
 /* UTILS */
 
 function getSettings(names) {
-    return new Promise(function(fulfill) {
-        brapi.storage.local.get(names, fulfill);
+    var items = {};
+    names.forEach(function(name) {
+        var value = localStorage.getItem(name);
+        if (value != null) items[name] = JSON.parse(value);
     })
+    return Promise.resolve(items);
 }
 
 function updateSettings(items) {
-    return new Promise(function(fulfill) {
-        brapi.storage.local.set(items, fulfill);
-    })
+    for (var name in items) {
+        if (items[name] != null) localStorage.setItem(name, JSON.stringify(items[name]));
+        else localStorage.removeItem(name);
+    }
+    return Promise.resolve();
+}
+
+function getCommonPathPrefix(path1, path2) {
+    var start = -1;
+    while (true) {
+        var end = path1.indexOf("/", start +1);
+        if (end == -1 || path1.substring(start +1, end +1) != path2.substring(start +1, end +1)) break;
+        start = end;
+    }
+    return path1.substring(0, start +1);
+}
+
+function redirectTo(url) {
+    window.parent.postMessage({method: "redirectTo", url: url}, queryString.url);
 }
 
 
@@ -211,11 +229,19 @@ function appendChatEntry(entry) {
     chatterInfo.appendChild(userName);
 
     var url = new URL(entry.user.url);
-    if (url.pathname != myUrl.pathname) {
+    if (url.hostname != myUrl.hostname || url.pathname != myUrl.pathname) {
+        var path = url.hostname + url.pathname;
+        var myPath = myUrl.hostname + myUrl.pathname;
+        var commonPrefix = getCommonPathPrefix(path, myPath);
+        var relativePath = commonPrefix
+            ? (myPath.substr(commonPrefix.length).split("/").slice(1).map(function() {return "../"}).join("") || "./") + path.substr(commonPrefix.length)
+            : path;
+
         var roomPath = document.createElement("SPAN");
         roomPath.className = "room-path";
-        roomPath.innerText = url.pathname;
+        roomPath.innerText = relativePath;
         roomPath.setAttribute("title", entry.user.url);
+        roomPath.addEventListener("click", redirectTo.bind(null, entry.user.url));
         chatterInfo.appendChild(roomPath);
     }
 

@@ -1,6 +1,6 @@
 var brapi = (typeof chrome != 'undefined') ? chrome : (typeof browser != 'undefined' ? browser : {});
 
-chrome.browserAction.onClicked.addListener(onActivate);
+brapi.browserAction.onClicked.addListener(onActivate);
 
 
 /* UTILS */

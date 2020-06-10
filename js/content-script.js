@@ -1,6 +1,9 @@
 var brapi = (typeof chrome != 'undefined') ? chrome : (typeof browser != 'undefined' ? browser : {});
 
+var appUrl = "https://sidechatter.lsdsoftware.com/chat.html?url=" + encodeURIComponent(location.href);
+
 getSettings(["sidebarWidth"]).then(onInit);
+window.addEventListener("message", onMessage, false);
 
 
 
@@ -32,8 +35,9 @@ function onInit(settings) {
     main.style.right =
     main.style.bottom = "0px";
     main.style.width = settings.sidebarWidth ? (settings.sidebarWidth + "px") : "25%";
-    main.style.borderRadius = ".375rem";
-    main.style.padding = ".75rem .75rem .75rem 0";
+    main.style.fontSize = "16px";
+    main.style.borderRadius = ".375em";
+    main.style.padding = ".75em .75em .75em 0";
     main.style.boxSizing = "border-box";
     main.style.backgroundColor = "#800";
     main.style.zIndex = "9999";
@@ -75,14 +79,14 @@ function onInit(settings) {
     main.appendChild(resizerDiv);
 
     var resizerKnob = document.createElement("IMG");
-    resizerKnob.src = chrome.runtime.getURL("web/img/drag-horiz.png");
+    resizerKnob.src = brapi.runtime.getURL("web/img/drag-horiz.png");
     resizerKnob.addEventListener("mousedown", resizer.start.bind(resizer));
-    resizerKnob.style.width = ".75rem";
+    resizerKnob.style.width = ".75em";
     resizerKnob.style.cursor = "ew-resize";
     resizerDiv.appendChild(resizerKnob);
 
     var frame = document.createElement("IFRAME");
-    frame.src = chrome.runtime.getURL("web/chat.html") + "?url=" + encodeURIComponent(location.href);
+    frame.src = appUrl;
     frame.style.flex = "1";
     frame.style.borderStyle = "none";
     main.appendChild(frame);
@@ -92,9 +96,13 @@ function onInit(settings) {
     closeBtn.addEventListener("click", function() {document.body.removeChild(main)});
     closeBtn.style.position = "absolute";
     closeBtn.style.top =
-    closeBtn.style.right = ".75rem";
-    closeBtn.style.fontSize = "1rem";
+    closeBtn.style.right = ".75em";
     closeBtn.style.color = "white";
     closeBtn.style.cursor = "pointer";
     main.appendChild(closeBtn);
+}
+
+function onMessage(ev) {
+    if (appUrl.substr(0, ev.origin.length) != ev.origin) return;
+    if (ev.data.method == "redirectTo") location.href = ev.data.url;
 }
