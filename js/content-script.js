@@ -1,8 +1,8 @@
 var brapi = (typeof chrome != 'undefined') ? chrome : (typeof browser != 'undefined' ? browser : {});
 
-var appUrl = "https://sidechatter.lsdsoftware.com/chat.html?url=" + encodeURIComponent(location.href) + "&title=" + encodeURIComponent(document.title);
+var appUrl;
 
-getSettings(["sidebarWidth"]).then(onInit);
+getSettings(["sidebarWidth", "useLocalUntil"]).then(onInit);
 window.addEventListener("message", onMessage, false);
 
 
@@ -27,6 +27,9 @@ function updateSettings(items) {
 
 function onInit(settings) {
     if (document.getElementById("side-chatter")) return;
+
+    var base = (settings.useLocalUntil && settings.useLocalUntil > Date.now()) ? brapi.runtime.getURL("web/chat.html") : "https://sidechatter.lsdsoftware.com/chat.html";
+    appUrl = base + "?url=" + encodeURIComponent(location.href) + "&title=" + encodeURIComponent(document.title);
 
     var main = document.createElement("DIV");
     main.id = "side-chatter";
@@ -95,10 +98,38 @@ function onInit(settings) {
 
 function onMessage(ev) {
     if (appUrl.substr(0, ev.origin.length) != ev.origin) return;
-    if (ev.data.method == "redirectTo") brapi.runtime.sendMessage(ev.data);
-    else if (ev.data.method == "openOptionsPage") brapi.runtime.sendMessage(ev.data);
+    var sendResponse = function(data) {
+        if (!data) data = {};
+        data.id = ev.data.id;
+        ev.source.postMessage(data, ev.origin);
+    };
+    if (ev.data.method == "redirectTo") {
+        brapi.runtime.sendMessage(ev.data);
+        sendResponse();
+    }
+    else if (ev.data.method == "openOptionsPage") {
+        brapi.runtime.sendMessage(ev.data);
+        sendResponse();
+    }
     else if (ev.data.method == "closeChat") {
         document.body.removeChild(document.getElementById("side-chatter"));
         window.removeEventListener("message", onMessage, false);
+        //sendResponse();
+    }
+    else if (ev.data.method == "getSettings") {
+        getSettings(ev.data.names)
+            .then(function(items) {
+                sendResponse({value: items});
+            })
+    }
+    else if (ev.data.method == "updateSettings") {
+        updateSettings(ev.data.items);
+        sendResponse();
+    }
+    else if (ev.data.method == "getVersion") {
+        sendResponse({value: brapi.runtime.getManifest().version});
+    }
+    else {
+        sendResponse({error: "BAD_METHOD"});
     }
 }

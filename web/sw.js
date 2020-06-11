@@ -13,7 +13,7 @@ self.addEventListener('fetch', event => {
             // event.waitUntil() ensures that the service worker is kept alive
             // long enough to complete the cache update.
             event.waitUntil(async function() {
-                const cache = await caches.open('my-cache-name');
+                const cache = await caches.open('main');
                 await cache.put(normalizedUrl, await fetchResponseCloneP);
             }());
 

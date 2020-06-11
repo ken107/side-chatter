@@ -21,7 +21,20 @@ var smileyRoot = "https://support2.lsdsoftware.com/diepkhuc-content/smileys/";
 
 document.addEventListener("DOMContentLoaded", onDocumentReady);
 
-if ('serviceWorker' in navigator) {
+if (/^http/.test(location.protocol) && location.hostname != "localhost") {
+    //if is web-hosted version and not test-mode
+    installServiceWorker();
+
+    //tell extension to use the local version for some duration of time
+    //rpcRequest({method: "updateSettings", items: {useLocalUntil: Date.now() + 3600*1000}}).catch(console.error)
+}
+
+
+
+/* UTILS */
+
+function installServiceWorker() {
+    if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
         navigator.serviceWorker.register('sw.js')
             .then(function(registration) {
@@ -33,27 +46,7 @@ if ('serviceWorker' in navigator) {
                 console.log('ServiceWorker registration failed: ', err);
             })
     })
-}
-
-
-
-/* UTILS */
-
-function getSettings(names) {
-    var items = {};
-    names.forEach(function(name) {
-        var value = localStorage.getItem(name);
-        if (value != null) items[name] = JSON.parse(value);
-    })
-    return Promise.resolve(items);
-}
-
-function updateSettings(items) {
-    for (var name in items) {
-        if (items[name] != null) localStorage.setItem(name, JSON.stringify(items[name]));
-        else localStorage.removeItem(name);
     }
-    return Promise.resolve();
 }
 
 function getCommonSuffix(s1, s2) {
@@ -61,8 +54,19 @@ function getCommonSuffix(s1, s2) {
     return s1;
 }
 
-function sendCommand(data) {
+function rpcRequest(data) {
+    data.id = Math.random();
     window.parent.postMessage(data, queryString.url);
+    return new Promise(function(fulfill, reject) {
+        var listener = function(ev) {
+            if (ev.data.id == data.id) {
+                if (ev.data.error) reject(new Error(ev.data.error));
+                else fulfill(ev.data.value);
+                window.removeEventListener("message", listener, false);
+            }
+        };
+        window.addEventListener("message", listener, false);
+    })
 }
 
 
@@ -81,7 +85,7 @@ sb.setHandler("side-chatter-client", function(req) {
     }
 })
 sb.addConnectListener(function() {
-    getSettings(["myName"])
+    rpcRequest({method: "getSettings", names: ["myName"]})
         .then(function(settings) {
             return request(["join-1.0"], {method: "join", myName: settings.myName, url: queryString.url, title: queryString.title})
         })
@@ -109,7 +113,7 @@ function changeName(newName) {
     request(["changeName-1.0"], {method: "changeName", newName: newName})
         .then(function() {
             document.getElementById("my-name").innerText = newName;
-            return updateSettings({myName: newName});
+            return rpcRequest({method: "updateSettings", items: {myName: newName}});
         })
         .catch(console.error)
 }
@@ -163,20 +167,22 @@ function onDocumentReady() {
 
     var fontSize = 1;
     var chatLog = document.getElementById("chat-log");
-    getSettings(["fontSize"])
+    rpcRequest({method: "getSettings", names: ["fontSize"]})
         .then(function(settings) {
             if (settings.fontSize) {
                 fontSize = settings.fontSize;
                 chatLog.style.fontSize = fontSize + "em";
             }
         })
+        .catch(console.error)
 
     var fontSizeButton = document.getElementById("fontsize-button");
     fontSizeButton.addEventListener("click", function() {
         fontSize += .125;
         if (fontSize > 1.26) fontSize = .75;
         chatLog.style.fontSize = fontSize + "em";
-        updateSettings({fontSize: fontSize});
+        rpcRequest({method: "updateSettings", items: {fontSize: fontSize}})
+            .catch(console.error)
     })
 
     var smileyGroupSelect = document.getElementById("smiley-group");
@@ -207,24 +213,28 @@ function onDocumentReady() {
 
     var optionsLink = document.getElementById("options-link");
     optionsLink.addEventListener("click", function() {
-        sendCommand({method: "openOptionsPage"});
+        rpcRequest({method: "openOptionsPage"})
+            .catch(console.error)
     })
 
     var closeButton = document.getElementById("close-button");
     closeButton.addEventListener("click", function() {
-        sendCommand({method: "closeChat"});
+        rpcRequest({method: "closeChat"})
+            .catch(console.error)
     })
 
     var announcement = document.getElementById("announcement");
-    getSettings(["hideAnnouncement"])
+    rpcRequest({method: "getSettings", names: ["hideAnnouncement"]})
         .then(function(settings) {
             if (!settings.hideAnnouncement) announcement.style.display = "flex";
         })
+        .catch(console.error)
 
     var hideAnnouncementButton = document.getElementById("hide-announcement-button");
     hideAnnouncementButton.addEventListener("click", function() {
         announcement.style.display = "none";
-        updateSettings({hideAnnouncement: true});
+        rpcRequest({method: "updateSettings", items: {hideAnnouncement: true}})
+            .catch(console.error)
     })
 }
 
@@ -267,7 +277,8 @@ function appendChatEntry(entry) {
         roomPath.innerText = relativePath;
         roomPath.setAttribute("title", entry.user.url);
         roomPath.addEventListener("click", function() {
-            sendCommand({method: "redirectTo", url: entry.user.url});
+            rpcRequest({method: "redirectTo", url: entry.user.url})
+                .catch(console.error)
         })
         chatterInfo.appendChild(roomPath);
     }
