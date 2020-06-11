@@ -6,8 +6,6 @@ if (location.search)
         queryString[decodeURIComponent(pair[0])] = pair.length > 1 ? decodeURIComponent(pair[1]) : true;
     })
 
-var myUrl = new URL(queryString.url);
-
 var smileyCollections = [
     {name: "orange", count: 94, desc: "Orange"},
     {name: "animals", count: 64, desc: "Animals"},
@@ -58,14 +56,9 @@ function updateSettings(items) {
     return Promise.resolve();
 }
 
-function getCommonPathPrefix(path1, path2) {
-    var start = -1;
-    while (true) {
-        var end = path1.indexOf("/", start +1);
-        if (end == -1 || path1.substring(start +1, end +1) != path2.substring(start +1, end +1)) break;
-        start = end;
-    }
-    return path1.substring(0, start +1);
+function getCommonSuffix(s1, s2) {
+    for (var i=0; i<s1.length; i++) if (s1.charAt(s1.length-1-i) != s2.charAt(s2.length-1-i)) return s1.substring(s1.length-i);
+    return s1;
 }
 
 function sendCommand(data) {
@@ -90,7 +83,7 @@ sb.setHandler("side-chatter-client", function(req) {
 sb.addConnectListener(function() {
     getSettings(["myName"])
         .then(function(settings) {
-            return request(["join-1.0"], {method: "join", url: queryString.url, myName: settings.myName})
+            return request(["join-1.0"], {method: "join", myName: settings.myName, url: queryString.url, title: queryString.title})
         })
         .then(onJoined)
         .catch(console.error)
@@ -264,15 +257,11 @@ function appendChatEntry(entry) {
     userName.innerText = entry.user.name;
     chatterInfo.appendChild(userName);
 
-    var url = new URL(entry.user.url);
-    if (url.hostname != myUrl.hostname || url.pathname != myUrl.pathname) {
-        var path = url.hostname + url.pathname;
-        var myPath = myUrl.hostname + myUrl.pathname;
-        var commonPrefix = getCommonPathPrefix(path, myPath);
-        var relativePath = commonPrefix
-            ? (myPath.substr(commonPrefix.length).split("/").slice(1).map(function() {return "../"}).join("") || "./") + path.substr(commonPrefix.length)
-            : path;
-
+    var path = entry.user.title || entry.user.url;
+    var myPath = queryString.title || queryString.url;
+    var commonSuffix = getCommonSuffix(path, myPath);
+    var relativePath = path.substring(0, path.length-commonSuffix.length);
+    if (relativePath) {
         var roomPath = document.createElement("SPAN");
         roomPath.className = "room-path";
         roomPath.innerText = relativePath;

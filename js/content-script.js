@@ -1,6 +1,6 @@
 var brapi = (typeof chrome != 'undefined') ? chrome : (typeof browser != 'undefined' ? browser : {});
 
-var appUrl = "https://sidechatter.lsdsoftware.com/chat.html?url=" + encodeURIComponent(location.href);
+var appUrl = "https://sidechatter.lsdsoftware.com/chat.html?url=" + encodeURIComponent(location.href) + "&title=" + encodeURIComponent(document.title);
 
 getSettings(["sidebarWidth"]).then(onInit);
 window.addEventListener("message", onMessage, false);
