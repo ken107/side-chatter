@@ -30,10 +30,10 @@ var docReady = new Promise(function(fulfill) {
 
 if (/^http/.test(location.protocol) && location.hostname != "localhost") {
     //if is web-hosted version and not test-mode
-    //installServiceWorker();
+    installServiceWorker();
 
     //tell extension to use the local version for some duration of time
-    rpcRequest({method: "updateSettings", items: {useLocalUntil: Date.now() + 3600*1000}}).catch(console.error)
+    rpcRequest({method: "updateSettings", items: {useLocalUntil: Date.now() + 12*3600*1000}}).catch(console.error)
 }
 
 setInterval(syncUrlAndTitle, 3000);
