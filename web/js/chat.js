@@ -6,6 +6,11 @@ if (location.search)
         queryString[decodeURIComponent(pair[0])] = pair.length > 1 ? decodeURIComponent(pair[1]) : true;
     })
 
+var hostPage = {
+    url: queryString.url,
+    title: queryString.title,
+}
+
 var smileyCollections = [
     {name: "orange", count: 94, desc: "Orange"},
     {name: "animals", count: 64, desc: "Animals"},
@@ -19,7 +24,9 @@ var smileyCollections = [
 var smileysPerPage = 20;
 var smileyRoot = "https://support2.lsdsoftware.com/diepkhuc-content/smileys/";
 
-document.addEventListener("DOMContentLoaded", onDocumentReady);
+var docReady = new Promise(function(fulfill) {
+    document.addEventListener("DOMContentLoaded", fulfill);
+})
 
 if (/^http/.test(location.protocol) && location.hostname != "localhost") {
     //if is web-hosted version and not test-mode
@@ -28,6 +35,9 @@ if (/^http/.test(location.protocol) && location.hostname != "localhost") {
     //tell extension to use the local version for some duration of time
     //rpcRequest({method: "updateSettings", items: {useLocalUntil: Date.now() + 3600*1000}}).catch(console.error)
 }
+
+setInterval(syncUrlAndTitle, 3000);
+onStartup();
 
 
 
@@ -49,14 +59,9 @@ function installServiceWorker() {
     }
 }
 
-function getCommonSuffix(s1, s2) {
-    for (var i=0; i<s1.length; i++) if (s1.charAt(s1.length-1-i) != s2.charAt(s2.length-1-i)) return s1.substring(s1.length-i);
-    return s1;
-}
-
 function rpcRequest(data) {
     data.id = Math.random();
-    window.parent.postMessage(data, queryString.url);
+    window.parent.postMessage(data, hostPage.url);
     return new Promise(function(fulfill, reject) {
         var listener = function(ev) {
             if (ev.data.id == data.id) {
@@ -87,7 +92,7 @@ sb.setHandler("side-chatter-client", function(req) {
 sb.addConnectListener(function() {
     rpcRequest({method: "getSettings", names: ["myName"]})
         .then(function(settings) {
-            return request(["join-1.0"], {method: "join", myName: settings.myName, url: queryString.url, title: queryString.title})
+            return request(["join-1.0"], {method: "join", myName: settings.myName, url: hostPage.url, title: hostPage.title})
         })
         .then(onJoined)
         .catch(console.error)
@@ -118,11 +123,26 @@ function changeName(newName) {
         .catch(console.error)
 }
 
+function syncUrlAndTitle() {
+    rpcRequest({method: "getUrlAndTitle"})
+        .then(function(data) {
+            if (data.url != hostPage.url && data.title != hostPage.title) {
+                hostPage.url = data.url;
+                hostPage.title = data.title;
+                request(["rejoin-1.0"], {method: "rejoin", url: hostPage.url, title: hostPage.title})
+                    .then(onJoined)
+                    .catch(console.error)
+            }
+        })
+        .catch(console.error)
+}
+
 
 
 /* HANDLERS */
 
-function onDocumentReady() {
+function onStartup() {
+docReady.then(function() {
     var composeForm = document.getElementById("compose-form");
     composeForm.addEventListener("submit", function(ev) {
         sendChat(composeForm.message.value);
@@ -236,18 +256,26 @@ function onDocumentReady() {
         rpcRequest({method: "updateSettings", items: {hideAnnouncement: true}})
             .catch(console.error)
     })
+})
 }
 
 function onJoined(data) {
+docReady.then(function() {
     var myName = document.getElementById("my-name");
     myName.innerText = data.myName;
     var chatLog = document.getElementById("chat-log");
     chatLog.innerHTML = "";
     data.chatLog.forEach(appendChatEntry);
+    chatLog.scrollTop = chatLog.scrollHeight;
+})
 }
 
 function onChatMessage(data) {
+docReady.then(function() {
     appendChatEntry(data.message);
+    var chatLog = document.getElementById("chat-log");
+    chatLog.scrollTop = chatLog.scrollHeight;
+})
 }
 
 
@@ -267,17 +295,13 @@ function appendChatEntry(entry) {
     userName.innerText = entry.user.name;
     chatterInfo.appendChild(userName);
 
-    var path = entry.user.title || entry.user.url;
-    var myPath = queryString.title || queryString.url;
-    var commonSuffix = getCommonSuffix(path, myPath);
-    var relativePath = path.substring(0, path.length-commonSuffix.length);
-    if (relativePath) {
+    if (entry.url != hostPage.url) {
         var roomPath = document.createElement("SPAN");
         roomPath.className = "room-path";
-        roomPath.innerText = relativePath;
-        roomPath.setAttribute("title", entry.user.url);
+        roomPath.innerText = entry.title || entry.url;
+        roomPath.setAttribute("title", entry.url);
         roomPath.addEventListener("click", function() {
-            rpcRequest({method: "redirectTo", url: entry.user.url})
+            rpcRequest({method: "redirectTo", url: entry.url})
                 .catch(console.error)
         })
         chatterInfo.appendChild(roomPath);

@@ -5,6 +5,7 @@ function ServiceBroker(url, logger) {
   var providers = {};
   var ws;
   var connectListeners = [];
+  var pendingSend = [];
   connect();
 
   function connect() {
@@ -22,6 +23,8 @@ function ServiceBroker(url, logger) {
     ws.onclose = onClose;
     ws.onmessage = onMessage;
     for (var i=0; i<connectListeners.length; i++) connectListeners[i]();
+    for (var i=0; i<pendingSend.length; i++) send(pendingSend[i].header, pendingSend[i].payload);
+    pendingSend = [];
   }
 
   function onClose() {
@@ -106,7 +109,10 @@ function ServiceBroker(url, logger) {
   }
 
   function send(header, payload) {
-      if (!ws) throw new Error("Not connected");
+      if (!ws) {
+        pendingSend.push({header: header, payload: payload});
+        return;
+      }
       logger.trace("SEND", header, payload);
       ws.send(JSON.stringify(header) + (payload ? "\n"+payload : ""));
   }

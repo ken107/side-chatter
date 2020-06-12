@@ -129,6 +129,9 @@ function onMessage(ev) {
     else if (ev.data.method == "getVersion") {
         sendResponse({value: brapi.runtime.getManifest().version});
     }
+    else if (ev.data.method == "getUrlAndTitle") {
+        sendResponse({value: {url: location.href, title: document.title}});
+    }
     else {
         sendResponse({error: "BAD_METHOD"});
     }
