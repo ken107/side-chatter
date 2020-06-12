@@ -43,7 +43,7 @@ function onInit(settings) {
     main.style.padding = ".75em .75em .75em 0";
     main.style.boxSizing = "border-box";
     main.style.backgroundColor = "#800";
-    main.style.zIndex = "9999";
+    main.style.zIndex = "9999999";
     main.style.display = "flex";
     document.body.appendChild(main);
 

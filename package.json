@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Side Chatter browser extension",
   "scripts": {
-    "deploy-web": "aws s3 sync --profile=s3 --delete --metadata-directive REPLACE --cache-control max-age=300,public web s3://lsdsoftware-websites/sidechatter.app",
+    "deploy-web": "aws s3 sync --profile=s3 --delete --metadata-directive REPLACE --cache-control max-age=1800,public web s3://lsdsoftware-websites/sidechatter.app",
     "package": "zip -u -r build/package.zip _locales img js web *.html LICENSE manifest.json || true"
   },
   "repository": {
