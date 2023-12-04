@@ -12,16 +12,6 @@
     </head>
     <body>
         <div class="content">
-            <div class="header">
-                <span class="logo">Side Chatter</span>
-                <span class="links">
-                    (<a href="#" id="options-link">options</a>,
-                    <a target="_blank" href="https://lsdsoftware.com/contact.html?subject=SideChatter">report issue</a>)
-                </span>
-                <span class="buttons">
-                    <span id="close-button">&times;</span>
-                </span>
-            </div>
             <div class="announcement alert alert-warning" id="announcement">
                 <span>👻</span>
                 <span>SideChatter is new and doesn't have a lot of users yet.  Please enjoy your stay!</span>
@@ -35,23 +25,25 @@
                 <div class="smiley-list" id="smiley-list"></div>
             </div>
             <div class="control-panel">
-                <span class="my-name" id="my-name"></span>
+                <span class="mr-1">Chat&nbsp;as:</span>
+                <span class="my-name" id="my-name" title="Click to change your screen name"></span>
                 <form class="edit-name-form" id="edit-name-form">
                     <div class="input-group">
-                        <input type="text" name="theName" class="form-control">
+                        <input type="text" name="theName" class="form-control form-control-sm">
                         <div class="input-group-append">
                             <button type="submit" class="btn btn-sm btn-primary">Change</button>
                         </div>
                     </div>
                 </form>
                 <span class="buttons">
-                    <i class="material-icons" id="fontsize-button">format_size</i>
                     <i class="material-icons" id="smiley-button">mood</i>
+                    <i class="material-icons" id="fontsize-button" title="Change font size">format_size</i>
+                    <i class="material-icons" id="report-button" title="Report an issue">flag</i>
                 </span>
             </div>
             <form class="compose-form" id="compose-form">
-                <textarea name="message" placeholder="Enter your chat message here"></textarea>
-                <button type="submit" class="btn btn-secondary">Send</button>
+                <textarea name="message" class="form-control" placeholder="Enter your chat message here"></textarea>
+                <button type="submit" class="btn btn-primary">Send</button>
             </form>
         </div>
     </body>

@@ -22,7 +22,7 @@ var smileyCollections = [
     {name: "anime", count: 971, desc: "Korean"},
 ]
 var smileysPerPage = 20;
-var smileyRoot = "https://support2.lsdsoftware.com/diepkhuc-content/smileys/";
+var smileyRoot = "https://assets.diepkhuc.com/smileys/";
 
 var docReady = new Promise(function(fulfill) {
     document.addEventListener("DOMContentLoaded", fulfill);
@@ -33,10 +33,11 @@ if (/^http/.test(location.protocol) && location.hostname != "localhost") {
     installServiceWorker();
 
     //tell extension to use the local version for some duration of time
-    rpcRequest({method: "updateSettings", items: {useLocalUntil: Date.now() + 12*3600*1000}}).catch(console.error)
+    chrome.storage.local.set({useLocalUntil: Date.now() + 12*3600*1000})
+        .catch(console.error)
 }
 
-setInterval(syncUrlAndTitle, 3000);
+setInterval(syncUrlAndTitle, 2000);
 onStartup();
 
 
@@ -59,21 +60,6 @@ function installServiceWorker() {
     }
 }
 
-function rpcRequest(data) {
-    data.id = Math.random();
-    window.parent.postMessage(data, hostPage.url);
-    return new Promise(function(fulfill, reject) {
-        var listener = function(ev) {
-            if (ev.data.id == data.id) {
-                if (ev.data.error) reject(new Error(ev.data.error));
-                else fulfill(ev.data.value);
-                window.removeEventListener("message", listener, false);
-            }
-        };
-        window.addEventListener("message", listener, false);
-    })
-}
-
 
 
 /* SERVICE */
@@ -89,13 +75,16 @@ sb.setHandler("side-chatter-client", function(req) {
         default: console.error("Unhandled", data.method);
     }
 })
-sb.addConnectListener(function() {
-    rpcRequest({method: "getSettings", names: ["myName"]})
-        .then(function(settings) {
-            return request(["join-1.0"], {method: "join", myName: settings.myName, url: hostPage.url, title: hostPage.title})
-        })
-        .then(onJoined)
-        .catch(console.error)
+sb.addConnectListener(async function() {
+    try {
+        const {url, title} = await getActiveTab()
+        const {myName} = await chrome.storage.local.get(["myName"])
+        const result = await request(["join-1.0"], {method: "join", myName, url, title})
+        onJoined(result)
+    }
+    catch (err) {
+        console.error(err)
+    }
 })
 function request(capabilities, data) {
     return sb.request({name: "side-chatter", capabilities: capabilities}, {payload: JSON.stringify(data)})
@@ -118,13 +107,18 @@ function changeName(newName) {
     request(["changeName-1.0"], {method: "changeName", newName: newName})
         .then(function() {
             document.getElementById("my-name").innerText = newName;
-            return rpcRequest({method: "updateSettings", items: {myName: newName}});
+            return chrome.storage.local.set({myName: newName});
         })
         .catch(console.error)
 }
 
+function getActiveTab() {
+    return chrome.tabs.query({currentWindow: true, active: true})
+        .then(tabs => tabs[0])
+}
+
 function syncUrlAndTitle() {
-    rpcRequest({method: "getUrlAndTitle"})
+    getActiveTab()
         .then(function(data) {
             if (data.url != hostPage.url && data.title != hostPage.title) {
                 hostPage.url = data.url;
@@ -166,8 +160,13 @@ docReady.then(function() {
 
     var smileyButton = document.getElementById("smiley-button");
     smileyButton.addEventListener("click", function() {
-        smileyBrowser.style.display = "block";
-        if (!smileyList.firstChild) showSmileyGroup(0, 0);
+        if (smileyBrowser.style.display == "block") {
+            smileyBrowser.style.display = "none";
+        }
+        else {
+            smileyBrowser.style.display = "block";
+            if (!smileyList.firstChild) showSmileyGroup(0, 0);
+        }
     })
 
     var editNameForm = document.getElementById("edit-name-form");
@@ -187,7 +186,7 @@ docReady.then(function() {
 
     var fontSize = 1;
     var chatLog = document.getElementById("chat-log");
-    rpcRequest({method: "getSettings", names: ["fontSize"]})
+    chrome.storage.local.get(["fontSize"])
         .then(function(settings) {
             if (settings.fontSize) {
                 fontSize = settings.fontSize;
@@ -201,7 +200,7 @@ docReady.then(function() {
         fontSize += .125;
         if (fontSize > 1.26) fontSize = .75;
         chatLog.style.fontSize = fontSize + "em";
-        rpcRequest({method: "updateSettings", items: {fontSize: fontSize}})
+        chrome.storage.local.set({fontSize: fontSize})
             .catch(console.error)
     })
 
@@ -231,20 +230,8 @@ docReady.then(function() {
         }
     })
 
-    var optionsLink = document.getElementById("options-link");
-    optionsLink.addEventListener("click", function() {
-        rpcRequest({method: "openOptionsPage"})
-            .catch(console.error)
-    })
-
-    var closeButton = document.getElementById("close-button");
-    closeButton.addEventListener("click", function() {
-        rpcRequest({method: "closeChat"})
-            .catch(console.error)
-    })
-
     var announcement = document.getElementById("announcement");
-    rpcRequest({method: "getSettings", names: ["hideAnnouncement"]})
+    chrome.storage.local.get(["hideAnnouncement"])
         .then(function(settings) {
             if (!settings.hideAnnouncement) announcement.style.display = "flex";
         })
@@ -253,8 +240,13 @@ docReady.then(function() {
     var hideAnnouncementButton = document.getElementById("hide-announcement-button");
     hideAnnouncementButton.addEventListener("click", function() {
         announcement.style.display = "none";
-        rpcRequest({method: "updateSettings", items: {hideAnnouncement: true}})
+        chrome.storage.local.set({hideAnnouncement: true})
             .catch(console.error)
+    })
+
+    var reportBtn = document.getElementById("report-button")
+    reportBtn.addEventListener("click", function() {
+        window.open("https://lsdsoftware.com/contact.html?subject=SideChatter", "sidechatter-contactus")
     })
 })
 }
@@ -301,7 +293,7 @@ function appendChatEntry(entry) {
         roomPath.innerText = entry.title || entry.url;
         roomPath.setAttribute("title", entry.url);
         roomPath.addEventListener("click", function() {
-            rpcRequest({method: "redirectTo", url: entry.url})
+            chrome.tabs.update({url: entry.url})
                 .catch(console.error)
         })
         chatterInfo.appendChild(roomPath);
