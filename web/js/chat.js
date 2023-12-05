@@ -28,37 +28,8 @@ var docReady = new Promise(function(fulfill) {
     document.addEventListener("DOMContentLoaded", fulfill);
 })
 
-if (/^http/.test(location.protocol) && location.hostname != "localhost") {
-    //if is web-hosted version and not test-mode
-    installServiceWorker();
-
-    //tell extension to use the local version for some duration of time
-    chrome.storage.local.set({useLocalUntil: Date.now() + 12*3600*1000})
-        .catch(console.error)
-}
-
 setInterval(syncUrlAndTitle, 2000);
 onStartup();
-
-
-
-/* UTILS */
-
-function installServiceWorker() {
-    if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-        navigator.serviceWorker.register('sw.js')
-            .then(function(registration) {
-                // Registration was successful
-                console.log('ServiceWorker registration successful with scope: ', registration.scope);
-            })
-            .catch(function(err) {
-                // registration failed :(
-                console.log('ServiceWorker registration failed: ', err);
-            })
-    })
-    }
-}
 
 
 
