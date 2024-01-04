@@ -49,7 +49,7 @@ sb.setHandler("side-chatter-client", function(req) {
 sb.addConnectListener(async function() {
     try {
         const {url, title} = await getActiveTab()
-        const {myName} = await chrome.storage.local.get(["myName"])
+        const {myName} = await browser.storage.local.get(["myName"])
         const result = await request(["join-1.0"], {method: "join", myName, url, title})
         onJoined(result)
     }
@@ -78,13 +78,13 @@ function changeName(newName) {
     request(["changeName-1.0"], {method: "changeName", newName: newName})
         .then(function() {
             document.getElementById("my-name").innerText = newName;
-            return chrome.storage.local.set({myName: newName});
+            return browser.storage.local.set({myName: newName});
         })
         .catch(console.error)
 }
 
 function getActiveTab() {
-    return chrome.tabs.query({currentWindow: true, active: true})
+    return browser.tabs.query({currentWindow: true, active: true})
         .then(tabs => tabs[0])
 }
 
@@ -157,7 +157,7 @@ docReady.then(function() {
 
     var fontSize = 1;
     var chatLog = document.getElementById("chat-log");
-    chrome.storage.local.get(["fontSize"])
+    browser.storage.local.get(["fontSize"])
         .then(function(settings) {
             if (settings.fontSize) {
                 fontSize = settings.fontSize;
@@ -171,7 +171,7 @@ docReady.then(function() {
         fontSize += .125;
         if (fontSize > 1.26) fontSize = .75;
         chatLog.style.fontSize = fontSize + "em";
-        chrome.storage.local.set({fontSize: fontSize})
+        browser.storage.local.set({fontSize: fontSize})
             .catch(console.error)
     })
 
@@ -202,7 +202,7 @@ docReady.then(function() {
     })
 
     var announcement = document.getElementById("announcement");
-    chrome.storage.local.get(["hideAnnouncement"])
+    browser.storage.local.get(["hideAnnouncement"])
         .then(function(settings) {
             if (!settings.hideAnnouncement) announcement.style.display = "flex";
         })
@@ -211,7 +211,7 @@ docReady.then(function() {
     var hideAnnouncementButton = document.getElementById("hide-announcement-button");
     hideAnnouncementButton.addEventListener("click", function() {
         announcement.style.display = "none";
-        chrome.storage.local.set({hideAnnouncement: true})
+        browser.storage.local.set({hideAnnouncement: true})
             .catch(console.error)
     })
 
@@ -264,7 +264,7 @@ function appendChatEntry(entry) {
         roomPath.innerText = entry.title || entry.url;
         roomPath.setAttribute("title", entry.url);
         roomPath.addEventListener("click", function() {
-            chrome.tabs.update({url: entry.url})
+            browser.tabs.update({url: entry.url})
                 .catch(console.error)
         })
         chatterInfo.appendChild(roomPath);

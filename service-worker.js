@@ -1,4 +1,4 @@
 
-chrome.sidePanel
-  .setPanelBehavior({ openPanelOnActionClick: true })
-  .catch((error) => console.error(error));
+browser.action.onClicked.addListener(function() {
+  browser.sidebarAction.open()
+})
